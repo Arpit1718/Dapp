@@ -1,0 +1,99 @@
+// SPDX-License-Identifier: UNLICENSED
+
+pragma solidity ^0.8.9;
+
+//import "hardhat/console.sol";
+
+contract Assessment {
+
+    address payable public owner;
+    uint256 public balance;
+
+    event Deposit(uint256 amount);
+    event Withdraw(uint256 amount);
+    event changeOwnership(address indexed previousOwner, address indexed newOwner);
+
+    constructor(uint initBalance) payable {
+        owner = payable(msg.sender);
+        balance = initBalance;
+    }
+    
+
+    function fetchBalance() public view returns (uint256) {
+        return balance;
+    }
+
+
+    function deposit(uint256 _amount) public payable {
+        uint256 _previousBalance = balance;
+
+        // make sure this is the owner
+        //if not the owner
+        require(msg.sender == owner, "You are not the owner of this account");
+
+        // perform transaction
+        //if owner
+        balance += _amount;
+
+        // assert transaction completed successfully
+        //amount added if reuire condition is satisfied
+        assert(balance == _previousBalance + _amount);
+
+        // emit the event
+        //deposit
+        emit Deposit(_amount);
+    }
+    
+    
+    // custom error
+    error InsufficientBalance(uint256 balance, uint256 withdrawAmount);
+    //when there are not enough funds to deposit
+    
+    
+
+    function withdraw(uint256 _withdrawAmount) public {
+
+        require(msg.sender == owner, "You are not the owner of this account");
+        uint256 _previousBalance = balance;
+        if (balance < _withdrawAmount) {
+            revert InsufficientBalance({balance: balance, withdrawAmount: _withdrawAmount});
+        }
+
+        // withdraw the given amount
+        balance -= _withdrawAmount;
+
+        // assert the balance is correct
+        assert(balance == (_previousBalance - _withdrawAmount));
+
+        // emit the event
+        emit Withdraw(_withdrawAmount);
+    }
+    
+
+    function getCurrentTimestamp() public view returns (uint256) {
+        return block.timestamp;
+    }
+        
+
+    function isOwner(address _address) public view returns (bool) {
+        return _address == owner;
+    }
+    
+
+    function ChangeOwnership(address payable _newOwner) public {
+        // make sure this is the owner
+        require(msg.sender == owner, "You are not the current owner of this account");
+
+        // validate the new owner address
+        require(_newOwner != address(0), "Invalid new owner address");
+
+        // store the previous owner
+        address payable _previousOwner = owner;
+
+        // update the owner
+        owner = _newOwner;
+
+        // emit the event
+        emit changeOwnership(_previousOwner, _newOwner);
+    }
+}
